@@ -366,12 +366,48 @@ mod_main_server <- function(id, r){
       
     })
     
+    # Report Downloader
+    output$report_download <- downloadHandler(
+      
+      filename = "Report.pdf",
+      
+      content = function(file) {
+        
+        req(r$results)
+        
+        message("copying over report")
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(tempdir(), "report.Rmd")
+        file.copy(from = "inst/app/www/darthReport.Rmd", 
+                  to = tempReport, 
+                  overwrite = TRUE)
+        
+        tempBib <- file.path(tempdir(), "report.bib")
+        file.copy(from = "inst/app/www/darthAPI.bib",
+                  to = tempBib, 
+                  overwrite = TRUE)
+        
+        message("Getting Results")
+        
+        # Set up parameters to pass to Rmd document
+        params <- list("df_results" = reactive({r$results}))
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(input = tempReport,
+                          output_format = "pdf",
+                          params = params,
+                          output_file = file,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+      
+    )
+    
     
   })
 }
-    
-## To be copied in the UI
-# mod_main_ui("main_1")
-    
-## To be copied in the server
-# mod_main_server("main_1")
+

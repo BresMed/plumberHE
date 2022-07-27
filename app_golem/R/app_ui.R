@@ -109,7 +109,11 @@ app_ui <- function(request) {
           
           tabItem(
             tabName = "report",
-            h5("Report tab")
+            h5("Report tab"),
+            downloadButton(
+              outputId = ns("report_download"),
+              label = "Download report"
+            )
           ),
           
           tabItem(
